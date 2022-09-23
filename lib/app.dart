@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
           "home":(context) => HomePage(),
           "new":(context) => NewRegister(),
           "list":(context) => ListRegisters(),
-          // "paginas":(context) => Principal(),
+          "paginas":(context) => Principal(),
         },        
         //no trabaja en modo desarrollo
         debugShowCheckedModeBanner: false,       
@@ -30,24 +30,4 @@ class MyApp extends StatelessWidget {
     ); 
   }
 }
-
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_proyecto/src/navbar/nav_bar.dart';
-// import 'package:flutter_proyecto/src/navbar/routes.dart';
-// import 'package:flutter_proyecto/src/pages/home_page.dart';
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   static const String _title = 'Flutter Code Sample';
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return const MaterialApp(
-//       title: _title,
-//       home: Principal(),
-//     );
-//   }
-// }
 

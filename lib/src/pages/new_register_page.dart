@@ -1,16 +1,13 @@
-
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyecto/services/http_service.dart';
 import 'package:flutter_proyecto/src/models/registro.dart';
-import 'package:flutter_proyecto/src/pages/list_registers_page.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 
 class NewRegister extends StatefulWidget {
   const NewRegister({Key? key}) : super(key: key);
@@ -18,13 +15,23 @@ class NewRegister extends StatefulWidget {
 }
 
 class _NewRegister extends State<NewRegister> {
-  final _formKey     = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  Registro _registro = Registro(id: 0, codigo: '', titular: '', direccion: '', mz: '', villa: '', lectura: '', localizacion: '', urlcamera: '');
+  Registro _registro = Registro(
+      id: 0,
+      codigo: '',
+      titular: '',
+      direccion: '',
+      mz: '',
+      villa: '',
+      lectura: '',
+      localizacion: '',
+      urlcamera: '');
 
   final HttpService httpService = HttpService();
   File? foto;
   bool _guardando = false;
+  String? ruta;
 
   TextEditingController code = TextEditingController();
   TextEditingController title = TextEditingController();
@@ -34,28 +41,6 @@ class _NewRegister extends State<NewRegister> {
   TextEditingController lect = TextEditingController();
   TextEditingController gps = TextEditingController();
   TextEditingController camera = TextEditingController();
-
-  // final Registro _registro = Registro(
-  //     id: 0,
-  //     codigo: "",
-  //     titular: "",
-  //     direccion: "",
-  //     mz: "",
-  //     villa: "",
-  //     lectura: "",
-  //     localizacion: "",
-  //     urlcamera: "");
-  // final List<Registro> _registros = [];
-  // final _formKey = GlobalKey<FormState>();
-  // final _scaffoldkey = GlobalKey<ScaffoldState>();
-  // final _codigo = TextEditingController(text: '');
-  // final _titular = TextEditingController(text: '');
-  // final _direccion = TextEditingController(text: '');
-  // final _mz = TextEditingController(text: '');
-  // final _villa = TextEditingController(text: '');
-  // final _lectura = TextEditingController(text: '');
-  // final _localizacion = TextEditingController(text: '');
-  // final _urlcamera = TextEditingController(text: '');
   final String titulo = "Nuevo Registro";
 
   void _okSmartAlert(BuildContext context) {
@@ -78,13 +63,6 @@ class _NewRegister extends State<NewRegister> {
     var form = _formKey.currentState;
     if (form!.validate()) {
       form.save();
-
-
-
-
-    // if(!_formKey.currentState!.validate()) return;
-// ignore: avoid_print
-    // _formKey.currentState!.save();
       print('''
       codigo : ${_registro.codigo}
       titular : ${_registro.titular}
@@ -95,18 +73,6 @@ class _NewRegister extends State<NewRegister> {
       localizacion: ${_registro.localizacion}
       urlcamera: ${_registro.urlcamera}
       ''');
-
-      // httpService.addPost(Registro(
-      //     id: -1,
-      //     codigo: _registro.codigo,
-      //     titular: _registro.titular,
-      //     direccion: _registro.direccion,
-      //     mz: _registro.mz,
-      //     villa: _registro.villa,
-      //     lectura: _registro.lectura,
-      //     localizacion: _registro.localizacion,
-      //     urlcamera: _registro.urlcamera));
-
       form.reset();
 
       _okSmartAlert(context);
@@ -195,13 +161,49 @@ class _NewRegister extends State<NewRegister> {
     });
   }
 
+  //ocr
+  bool textScanning = false;
+  XFile? imageFile;
+  String scannedText = "";
+
+  void getImage(ImageSource source) async {
+    try {
+      final pickedImage = await ImagePicker().pickImage(source: source);
+      if (pickedImage != null) {
+        textScanning = true;
+        imageFile = pickedImage;
+        setState(() {});
+        getRecognisedText(pickedImage);
+      }
+    } catch (e) {
+      textScanning = false;
+      imageFile = null;
+      scannedText = "Error occured while scanning";
+      setState(() {});
+    }
+  }
+
+  void getRecognisedText(XFile image) async {
+    final inputImage = InputImage.fromFilePath(image.path);
+    final textDetector = GoogleMlKit.vision.textDetector();
+    RecognisedText recognisedText = await textDetector.processImage(inputImage);
+    await textDetector.close();
+    scannedText = "";
+    for (TextBlock block in recognisedText.blocks) {
+      for (TextLine line in block.lines) {
+        scannedText = scannedText + line.text + "\n";
+      }
+    }
+    textScanning = false;
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-
-    final Registro? prodData = ModalRoute.of(context)?.settings.arguments as Registro?;
-    if ( prodData != null ) {
-      _registro = prodData;
-    }
+    // final Registro? prodData = ModalRoute.of(context)?.settings.arguments as Registro?;
+    // if ( prodData != null ) {
+    //   _registro = prodData;
+    // }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       key: _scaffoldKey,
@@ -224,53 +226,156 @@ class _NewRegister extends State<NewRegister> {
                       right: 35.0,
                     ),
 
-                      child: Column(
-                        children: <Widget>[
-                          // _mostrarFoto(),
-                          _wcode(),
-                          _wtitular(),
-                          _wadress(),
-                          _wmz(),
-                          _wvilla(),
-                          _wlectura(),
-                          _wubicacion(),
-                          _wurl(),
-
-                          // ElevatedButton(
-                          //   onPressed: () => _onSubmit(context),
-                          //   child: const Text("Guardar"),
-                          // ),
-                          Row(
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: () => _tomarFoto(),
-                                icon: Icon(Icons.camera, size: 18),
-                                label: Text("Foto"),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  child: Center( ),
-                                ),
-                              ),
-                              OutlinedButton.icon(
-                                onPressed:() => _seleccionarFoto(),
-                                icon: Icon(Icons.image, size: 18),
-                                label: Text("Galeria"),
-                              ),
-                            ],
+                    child: Column(
+                      children: <Widget>[
+                        // _mostrarFoto(),
+                        _wcode(),
+                        _wtitular(),
+                        _wadress(),
+                        _wmz(),
+                        _wvilla(),
+                        _wubicacion(),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        if (textScanning) const CircularProgressIndicator(),
+                        if (!textScanning && imageFile == null)
+                          Container(
+                            width: 300,
+                            height: 300,
+                            color: Colors.grey[300]!,
                           ),
-
-                          OutlinedButton.icon(
-                            onPressed: ()  {
-                              // _onSubmit(context);
-                              httpService.addPost(-1, code.text, title.text, address.text, m.text , v.text, lect.text, "Long: $long  Lat: $lat", camera.text);
-                            },
-                            icon: Icon(Icons.save, size: 18),
-                            label: Text("Guardar"),
-                          ),
-                        ],
-                      ),
+                        if (imageFile != null)
+                          Image.file(File(imageFile!.path)),
+                          
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                padding: const EdgeInsets.only(top: 10),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Colors.white,
+                                    onPrimary: Colors.grey,
+                                    shadowColor: Colors.grey[400],
+                                    elevation: 10,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0)),
+                                  ),
+                                  onPressed: () {
+                                    getImage(ImageSource.gallery);
+                                    
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 5),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.image,
+                                          size: 30,
+                                        ),
+                                        Text(
+                                          "Gallery",
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[600]),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                )),
+                            Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                padding: const EdgeInsets.only(top: 10),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Colors.white,
+                                    onPrimary: Colors.grey,
+                                    shadowColor: Colors.grey[400],
+                                    elevation: 10,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0)),
+                                  ),
+                                  onPressed: () {
+                                    getImage(ImageSource.camera);
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 5),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.camera_alt,
+                                          size: 30,
+                                        ),
+                                        Text(
+                                          "Camera",
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[600]),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        // Container(
+                        //   child: Text(
+                        //     ruta!,
+                        //     style: TextStyle(fontSize: 20),
+                        //   ),
+                        // ),
+                        _wlectura(),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            ruta = await httpService.subirImagen(imageFile!) as String?;
+                          },
+                          icon: Icon(Icons.cloud_queue_sharp, size: 18),
+                          label: Text("Cargar URL"),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        if (ruta != null)
+                        _wurl(),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            httpService.addPost(
+                                -1,
+                                code.text,
+                                title.text,
+                                address.text,
+                                m.text,
+                                v.text,
+                                "$scannedText",
+                                "Long: $long  Lat: $lat",
+                                "$ruta");                           
+                            // _onSubmit(context);
+                          },
+                          icon: Icon(Icons.save, size: 18),
+                          label: Text("Guardar"),
+                        ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),
@@ -278,24 +383,6 @@ class _NewRegister extends State<NewRegister> {
         ),
       ),
 
-      // bottomNavigationBar: BottomAppBar(
-      //   shape: const CircularNotchedRectangle(),
-      //   child: Container(height: 40.0),
-      // ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     print(_registros.length);
-      //     Navigator.push(
-      //       context,
-      //       MaterialPageRoute(
-      //         builder: (context) => ListRegisters(registros: _registros),
-      //       ),
-      //     );
-      //   },
-      //   tooltip: 'Increment Counter',
-      //   child: const Icon(Icons.list),
-      // ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   } // build
 
@@ -420,7 +507,7 @@ class _NewRegister extends State<NewRegister> {
             // enabled: false,
             //border: InputBorder.none,
             hintText: "Tomar/Subir Foto"),
-        controller: camera,
+        controller: TextEditingController(text: '$ruta'),
         onSaved: (val) => _registro.urlcamera = val!,
         validator: (val) => (val!.isEmpty ? 'Por favor ingresa foto' : null),
       );
@@ -433,10 +520,11 @@ class _NewRegister extends State<NewRegister> {
         decoration: const InputDecoration(
           labelText: "Lectura",
           icon: Icon(Icons.numbers_outlined),
+          enabled: false,
           //border: InputBorder.none,
           hintText: "Ingrese Lectura",
         ),
-        controller: lect,
+        controller: TextEditingController(text: '$scannedText'),
         validator: (value) {
           if (value!.isEmpty) {
             return "Por favor ingresa Lectura";
@@ -448,42 +536,4 @@ class _NewRegister extends State<NewRegister> {
         },
         onSaved: (value) => _registro.lectura = value!,
       );
-
-  Widget _mostrarFoto(){
-    if( _registro.urlcamera != null){
-      return FadeInImage(
-        image: NetworkImage( _registro.urlcamera ),
-        placeholder: AssetImage('assets/jar-loading.gif'),
-        height: 300.0,
-        fit: BoxFit.contain,
-      );
-    }else{
-      return Image(
-        image: AssetImage( foto?.path ?? 'assets/no-image.png'),
-        height: 300.0,
-        fit: BoxFit.cover,
-        );
-    }
-  }
-
-  _seleccionarFoto() async {
-    _procesarFoto( ImageSource.gallery);
-  }
-
-  _tomarFoto() async{
-     _procesarFoto( ImageSource.camera);
-  }
-
-  _procesarFoto( ImageSource ruta) {
-    final pick = ImagePicker();
-    foto = pick.pickImage( source: ruta) as File? ;
-
-    if( foto != null){
-      // _registro.urlcamera = httpService.subirImagen(foto!) as String;
-    }else{
-    }
-    setState(() { });
-  }
-
 }
-

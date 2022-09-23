@@ -46,13 +46,33 @@ class ViemHome extends StatelessWidget {
                       title: Text("Estado"),
                       subtitle: Text("${post.estado}"),
                     ),
-                    IconButton(
-                        icon: Icon(Icons.check_box),
-                        onPressed: () async{
-                          // post.estado = "realizado";
-                        
-                        },
-                      )
+                    // Row(
+                    //         children: [
+                    //           OutlinedButton.icon(
+                    //             onPressed: () {
+                    //               httpService.updatePost(post.id, "${post.codigo}", "${post.titular}", "${post.direccion}", "${post.mz}", "${post.villa}", "${post.actividad}", "revisado");
+                    //               // Navigator.pop(context);
+                    //             },
+                    //             icon: Icon(Icons.check, size: 18),
+                    //             label: Text("Revisado"),
+                                
+                                
+                    //           ),
+                    //           // Expanded(
+                    //           //   child: Container(
+                    //           //     child: Center( ),
+                    //           //   ),
+                    //           // ),
+                    //           OutlinedButton.icon(
+                    //             onPressed:() => {
+                    //               httpService.updatePost(post.id, "${post.codigo}", "${post.titular}", "${post.direccion}", "${post.mz}", "${post.villa}", "${post.actividad}", "rechazado"),
+                    //               // Navigator.pop(context)
+                    //             },
+                    //             icon: Icon(Icons.close, size: 18),
+                    //             label: Text("Rechazado"),
+                    //           ),
+                    //         ],
+                    //       ),
                   ],
                 ),
               ),

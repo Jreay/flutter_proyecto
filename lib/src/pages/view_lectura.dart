@@ -41,13 +41,10 @@ class ViemLectura extends StatelessWidget {
                       title: Text("Ubicación"),
                       subtitle: Text("${post.localizacion}"),
                     ),
-                    IconButton(
-                        icon: Icon(Icons.check_box),
-                        onPressed: () async{
-                          // post.estado = "realizado";
-                        
-                        },
-                      )
+                    ListTile(
+                      title: Text("Lectura"),
+                      subtitle: Text("${post.lectura}"),
+                    ),
                   ],
                 ),
               ),

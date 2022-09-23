@@ -16,7 +16,7 @@ class Routes extends StatelessWidget {
       HomePage(),
       ListRegisters(),
       const NewRegister(),
-      const LoginPage()
+      const LoginPage(),
     
     ];
     return myList[index];

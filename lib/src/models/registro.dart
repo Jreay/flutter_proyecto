@@ -9,20 +9,9 @@ Registro registroFromJson(String str) => Registro.fromJson(json.decode(str));
 String registroToJson(Registro data) => json.encode(data.toJson());
 
 class Registro {
-    Registro({
-        required this.id,
-        required this.codigo,
-        required this.titular,
-        required this.direccion,
-        required this.mz,
-        required this.villa,
-        required this.lectura,
-        required this.localizacion,
-        required this.urlcamera,
-    });
 
-    int id;
-    String codigo;
+     int id;
+     String codigo;
     String titular;
     String direccion;
     String mz;
@@ -30,6 +19,19 @@ class Registro {
     String lectura;
     String localizacion;
     String urlcamera;
+    Registro({
+         required this.id,
+         required this.codigo,
+         required this.titular,
+         required this.direccion,
+         required this.mz,
+         required this.villa,
+         required this.lectura,
+         required this.localizacion,
+         required this.urlcamera,
+    });
+
+    
 
     factory Registro.fromJson(Map<String, dynamic> json) => Registro(
         id: json["id"],
